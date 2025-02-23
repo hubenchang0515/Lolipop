@@ -82,17 +82,11 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 
 void MainWindow::openFile() noexcept
 {
-#ifdef Q_OS_WASM
-    QFileDialog::getOpenFileContent("", [this](const QString& name, const QByteArray& data){
-        emit dataChanged(data);
-    });
-#else
     auto file = QFileDialog::getOpenFileName(this);
     if (!file.isEmpty())
     {
         emit fileChanged(file);
     }
-#endif
 }
 
 void MainWindow::openLink() noexcept

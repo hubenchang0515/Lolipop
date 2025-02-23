@@ -104,7 +104,8 @@ void VideoView::setSource(const QString& src) noexcept
 
 void VideoView::setData(const QByteArray& data) noexcept
 {
-    m_data->setData(data);
+    m_data->reset();
+    m_data->write(data);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     m_player->setMedia(QUrl{}, m_data);
 #else
