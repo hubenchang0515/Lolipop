@@ -2,6 +2,9 @@
 
 Media Player - 媒体播放器
 
+![Preview](./doc/preview.png)
+
+Use [QtTheme](https://github.com/hubenchang0515/QtTheme) Style. - 采用 [QtTheme](https://github.com/hubenchang0515/QtTheme) 样式。
 
 ## Tips
 
