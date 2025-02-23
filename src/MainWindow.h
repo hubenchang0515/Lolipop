@@ -8,6 +8,7 @@
 
 #include "VideoView.h"
 #include "ControlWidget.h"
+#include "UrlDialog.h"
 
 class MainWindow : public QMainWindow
 {
@@ -22,6 +23,7 @@ public:
     void openLink() noexcept;
     void setFullScreen(bool v) noexcept;
     void toggleFullScreen() noexcept;
+    void showError(const QString& error) noexcept;
 
 signals:
     void fileChanged(const QString&);
@@ -29,6 +31,7 @@ signals:
     void dataChanged(const QByteArray&);
 
 private:
+    UrlDialog* m_url;
     QMenuBar* m_menus;
     QToolBar* m_tools;
     VideoView* m_view;
@@ -36,6 +39,7 @@ private:
     QWidget* m_main;
     QVBoxLayout* m_viewLayout;
     QVBoxLayout* m_mainLayout;
+
 
     void initMenuBar() noexcept;
 };

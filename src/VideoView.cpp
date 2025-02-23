@@ -15,12 +15,12 @@ VideoView::VideoView(QWidget* parent) noexcept:
     m_player->setVideoOutput(m_item);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &VideoView::errorOccurred);
+    connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), [this](){ emit errorOccurred(m_player->errorString()); });
     connect(m_player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state){emit playingChanged(state == QMediaPlayer::State::PlayingState);});
     connect(m_player, &QMediaPlayer::volumeChanged, this, &VideoView::volumeChanged);
 #else
     m_player->setAudioOutput(m_audio);
-    connect(m_player, &QMediaPlayer::errorOccurred, this, &VideoView::errorOccurred);
+    connect(m_player, &QMediaPlayer::errorOccurred, [this](){ emit errorOccurred(m_player->errorString()); });
     connect(m_player, &QMediaPlayer::playbackStateChanged, [this](QMediaPlayer::PlaybackState state){emit playingChanged(state == QMediaPlayer::PlayingState);});
     connect(m_audio, &QAudioOutput::volumeChanged, this, &VideoView::volumeChanged);
 #endif
@@ -90,15 +90,27 @@ void VideoView::toggle() noexcept
         play();
 }
 
-void VideoView::setSource(const QString& src) noexcept
+void VideoView::setFile(const QString& src) noexcept
 {
+    QUrl url = QUrl::fromLocalFile(src);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    m_player->setMedia(QUrl::fromLocalFile(src));
+    m_player->setMedia(url);
 #else
-    m_player->setSource(QUrl::fromLocalFile(src));
+    m_player->setSource(url);
 #endif
-
     m_player->play();
+}
+
+
+void VideoView::setLink(const QString& src) noexcept
+{
+    QUrl url{src};
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    m_player->setMedia(url);
+#else
+    m_player->setSource(url);
+#endif
+    m_player->play(); 
 }
 
 

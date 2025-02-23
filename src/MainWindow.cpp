@@ -4,9 +4,11 @@
 #include <QAction>
 #include <QMenu>
 #include <QFileDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget* parent) noexcept:
     QMainWindow{parent},
+    m_url{new UrlDialog{this}},
     m_menus{new QMenuBar},
     m_tools{new QToolBar},
     m_view{new VideoView},
@@ -35,10 +37,11 @@ MainWindow::MainWindow(QWidget* parent) noexcept:
     connect(m_view, &VideoView::durationChanged, m_control, &ControlWidget::setDuration);
     connect(m_view, &VideoView::positionChanged, m_control, &ControlWidget::setProgress);
     connect(m_view, &VideoView::volumeChanged, m_control, &ControlWidget::setVolume);
-    connect(m_view, &VideoView::errorOccurred, [](QMediaPlayer::Error error){qDebug() << error;});
+    connect(m_view, &VideoView::errorOccurred, this, &MainWindow::showError);
 
-    connect(this, &MainWindow::fileChanged, m_view, &VideoView::setSource);
+    connect(this, &MainWindow::fileChanged, m_view, &VideoView::setFile);
     connect(this, &MainWindow::dataChanged, m_view, &VideoView::setData);
+    connect(m_url, &UrlDialog::urlConfirmed, m_view, &VideoView::setLink);
     connect(m_control, &ControlWidget::progressChanged, m_view, &VideoView::setPosition);
     connect(m_control, &ControlWidget::openClicked, this, &MainWindow::openFile);
     connect(m_control, &ControlWidget::fullClicked, this, &MainWindow::toggleFullScreen);
@@ -91,7 +94,7 @@ void MainWindow::openFile() noexcept
 
 void MainWindow::openLink() noexcept
 {
-// TODO
+    m_url->show();
 }
 
 
@@ -129,6 +132,12 @@ void MainWindow::toggleFullScreen() noexcept
     {
         setFullScreen(true);
     }
+}
+
+
+void MainWindow::showError(const QString& error) noexcept
+{
+    QMessageBox::critical(this, "Error", error);
 }
 
 void MainWindow::initMenuBar() noexcept

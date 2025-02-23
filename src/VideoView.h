@@ -26,7 +26,8 @@ public:
     void play() noexcept;
     void pause() noexcept;
     void toggle() noexcept;
-    void setSource(const QString& src) noexcept;
+    void setFile(const QString& src) noexcept;
+    void setLink(const QString& src) noexcept;
     void setData(const QByteArray& data) noexcept;
     void setPosition(qint64 n) noexcept;
     void setVolume(int volume) noexcept;
@@ -36,7 +37,7 @@ public:
 
 signals:
     void empty();
-    void errorOccurred(QMediaPlayer::Error);
+    void errorOccurred(const QString&);
     void playingChanged(bool);
     void positionChanged(qint64);
     void durationChanged(qint64);
