@@ -12,7 +12,7 @@ if(WIN32)
   add_link_options("$<$<AND:$<STREQUAL:$<CXX_COMPILER_ID>,GNU>,$<STREQUAL:$<CONFIG>,Release>>:-mwindows>")
 endif()
 
-find_package(Qt6 COMPONENTS Core Widgets Multimedia MultimediaWidgets )
+find_package(Qt6 COMPONENTS Core Widgets Multimedia MultimediaWidgets QUIET)
 
 if (NOT Qt6_FOUND)
   find_package(Qt5 COMPONENTS Core Widgets Multimedia MultimediaWidgets REQUIRED)
