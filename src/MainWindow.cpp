@@ -50,6 +50,11 @@ MainWindow::MainWindow(QWidget* parent) noexcept:
     connect(m_control, &ControlWidget::playClicked, m_view, &VideoView::toggle);
     connect(m_control, &ControlWidget::volumeChanged, m_view, &VideoView::setVolume);
 
+#ifdef Q_OS_WASM
+    setFullScreen(true);
+    m_view->setLink("https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm");
+#endif
+
     QFile qss{":/QtTheme/theme/Flat/Dark/Indigo/Teal.qss"};
     qss.open(QFile::ReadOnly);
     setStyleSheet(qss.readAll());
@@ -107,16 +112,20 @@ void MainWindow::setFullScreen(bool v) noexcept
     {
         ControlWidget* control = dynamic_cast<ControlWidget*>(m_mainLayout->takeAt(1)->widget());
         m_viewLayout->addWidget(control);
+    #ifndef Q_OS_WASM
         m_menus->hide();
         m_tools->hide();
+    #endif
         setWindowState(Qt::WindowFullScreen);
     }
     else
     {
         ControlWidget* control = dynamic_cast<ControlWidget*>(m_viewLayout->takeAt(1)->widget());
         m_mainLayout->addWidget(control);
+    #ifndef Q_OS_WASM
         m_menus->show();
         m_tools->show();
+    #endif
         showNormal();
     }
     m_control->setFullScreen(v);
