@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget* parent) noexcept:
     connect(m_view, &VideoView::errorOccurred, [](QMediaPlayer::Error error){qDebug() << error;});
 
     connect(this, &MainWindow::fileChanged, m_view, &VideoView::setSource);
+    connect(this, &MainWindow::dataChanged, m_view, &VideoView::setData);
     connect(m_control, &ControlWidget::progressChanged, m_view, &VideoView::setPosition);
     connect(m_control, &ControlWidget::openClicked, this, &MainWindow::openFile);
     connect(m_control, &ControlWidget::fullClicked, this, &MainWindow::toggleFullScreen);
@@ -68,8 +69,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 #else
     QPoint pos = hover->position().toPoint();
 #endif
-
-    if (m_control->geometry().contains(pos))
+    if (pos.y() > size().height() * 0.75)
     {
         m_control->show();
     }
@@ -82,11 +82,17 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 
 void MainWindow::openFile() noexcept
 {
+#ifdef Q_OS_WASM
+    QFileDialog::getOpenFileContent("", [this](const QString& name, const QByteArray& data){
+        emit dataChanged(data);
+    });
+#else
     auto file = QFileDialog::getOpenFileName(this);
     if (!file.isEmpty())
     {
         emit fileChanged(file);
     }
+#endif
 }
 
 void MainWindow::openLink() noexcept

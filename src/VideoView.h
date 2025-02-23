@@ -8,6 +8,7 @@
 #include <QAudioOutput>
 #include <QResizeEvent>
 #include <QLayout>
+#include <QBuffer>
 
 class VideoView : public QGraphicsView
 {
@@ -26,6 +27,7 @@ public:
     void pause() noexcept;
     void toggle() noexcept;
     void setSource(const QString& src) noexcept;
+    void setData(const QByteArray& data) noexcept;
     void setPosition(qint64 n) noexcept;
     void setVolume(int volume) noexcept;
 
@@ -45,6 +47,7 @@ private:
     QGraphicsVideoItem* m_item;
     QMediaPlayer* m_player;
     QAudioOutput* m_audio;
+    QBuffer* m_data;
 };
 
 #endif

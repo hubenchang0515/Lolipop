@@ -26,6 +26,7 @@ public:
 signals:
     void fileChanged(const QString&);
     void linkChanged(const QString&);
+    void dataChanged(const QByteArray&);
 
 private:
     QMenuBar* m_menus;

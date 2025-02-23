@@ -5,8 +5,10 @@ VideoView::VideoView(QWidget* parent) noexcept:
     m_scene{new QGraphicsScene{this}},
     m_item{new QGraphicsVideoItem},
     m_player{new QMediaPlayer{this}},
-    m_audio{new QAudioOutput}
+    m_audio{new QAudioOutput},
+    m_data{new QBuffer{this}}
 {
+    m_data->open(QBuffer::ReadWrite);
     m_audio->setParent(this);
     m_scene->addItem(m_item);
     setScene(m_scene);
@@ -39,7 +41,6 @@ QSize VideoView::sizeHint() const
 
 void VideoView::resizeEvent(QResizeEvent* event)
 {
-    qDebug() << event->size();
     QGraphicsView::resizeEvent(event);
     m_item->setSize(event->size());
     m_scene->setSceneRect(0, 0, event->size().width(), event->size().height());
@@ -100,6 +101,17 @@ void VideoView::setSource(const QString& src) noexcept
     m_player->play();
 }
 
+
+void VideoView::setData(const QByteArray& data) noexcept
+{
+    m_data->setData(data);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    m_player->setMedia(QUrl{}, m_data);
+#else
+    m_player->setSourceDevice(m_data);
+#endif
+    m_player->play();
+}
 
 void VideoView::setPosition(qint64 n) noexcept
 {
