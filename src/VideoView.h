@@ -4,6 +4,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsVideoItem>
+#include <QGraphicsPixmapItem>
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QResizeEvent>
@@ -35,6 +36,8 @@ public:
     void backward() noexcept;
     void forward() noexcept;
 
+    void onMetaDataChanged() noexcept;
+
 signals:
     void empty();
     void errorOccurred(const QString&);
@@ -45,10 +48,13 @@ signals:
 
 private:
     QGraphicsScene* m_scene;
+    QGraphicsPixmapItem* m_cover;
     QGraphicsVideoItem* m_item;
     QMediaPlayer* m_player;
     QAudioOutput* m_audio;
     QBuffer* m_data;
+
+    void fitCover() noexcept;
 };
 
 #endif

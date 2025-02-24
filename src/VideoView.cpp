@@ -1,9 +1,12 @@
 #include "VideoView.h"
 
+#include <QMediaMetaData>
+
 VideoView::VideoView(QWidget* parent) noexcept:
     QGraphicsView{parent},
     m_scene{new QGraphicsScene{this}},
     m_item{new QGraphicsVideoItem},
+    m_cover{new QGraphicsPixmapItem},
     m_player{new QMediaPlayer{this}},
     m_audio{new QAudioOutput},
     m_data{new QBuffer{this}}
@@ -11,6 +14,7 @@ VideoView::VideoView(QWidget* parent) noexcept:
     m_data->open(QBuffer::ReadWrite);
     m_audio->setParent(this);
     m_scene->addItem(m_item);
+    m_scene->addItem(m_cover);
     setScene(m_scene);
     m_player->setVideoOutput(m_item);
 
@@ -27,6 +31,7 @@ VideoView::VideoView(QWidget* parent) noexcept:
 
     connect(m_player, &QMediaPlayer::positionChanged, this, &VideoView::positionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &VideoView::durationChanged);
+    connect(m_player, &QMediaPlayer::metaDataChanged, this, &VideoView::onMetaDataChanged);
 }
 
 VideoView::~VideoView() noexcept
@@ -44,6 +49,7 @@ void VideoView::resizeEvent(QResizeEvent* event)
     QGraphicsView::resizeEvent(event);
     m_item->setSize(event->size());
     m_scene->setSceneRect(0, 0, event->size().width(), event->size().height());
+    fitCover();
 }
 
 qint64 VideoView::position() const noexcept
@@ -154,4 +160,37 @@ void VideoView::backward() noexcept
 void VideoView::forward() noexcept
 {
     m_player->setPosition(m_player->position() + 10000);
+}
+
+void VideoView::onMetaDataChanged() noexcept
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    auto cover = m_player->metaData(QMediaMetaData::CoverArtImage).value<QImage>();
+#else
+    auto cover = m_player->metaData().value(QMediaMetaData::CoverArtImage).value<QImage>();
+#endif
+    if (!cover.isNull())
+    {
+        m_cover->setPixmap(QPixmap::fromImage(cover));
+        fitCover();
+        return;
+    }
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    auto cover = m_player->metaData(QMediaMetaData::ThumbnailImage).value<QImage>();
+#else
+    auto thumb = m_player->metaData().value(QMediaMetaData::ThumbnailImage).value<QImage>();
+#endif
+    if (!thumb.isNull())
+    {
+        m_cover->setPixmap(QPixmap::fromImage(thumb));
+        fitCover();
+        return;
+    }
+}
+
+void VideoView::fitCover() noexcept
+{
+    auto outRect = m_scene->sceneRect();
+    auto inRect = m_cover->boundingRect();
+    m_cover->setPos(outRect.width()/2 - inRect.width()/2, outRect.height()/2 - inRect.height()/2);
 }
