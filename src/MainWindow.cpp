@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTemporaryFile>
+#include <QSettings>
 
 MainWindow::MainWindow(bool singleton, QWidget* parent) noexcept:
     QMainWindow{parent},
@@ -172,6 +173,62 @@ void MainWindow::showError(const QString& error) noexcept
     QMessageBox::critical(this, "Error", error);
 }
 
+bool MainWindow::regApp() noexcept
+{
+    QSettings regLolipop("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\lolipop.exe", QSettings::NativeFormat);
+    if (!regLolipop.isWritable())
+    {
+        return false;
+    }
+
+    regLolipop.setValue("Default", QDir::toNativeSeparators(qApp->applicationFilePath()));
+    regLolipop.setValue("Path", QDir::toNativeSeparators(qApp->applicationDirPath()));
+    return true;
+}
+
+bool MainWindow::regFileTypes() noexcept
+{
+    QSettings regLolipop("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe", QSettings::NativeFormat);
+    QSettings regLolipopOpen("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\shell\\open", QSettings::NativeFormat);
+    QSettings regLolipopCmd("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\shell\\open\\command", QSettings::NativeFormat);
+    QSettings regLolipopTypes("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\SupportedTypes", QSettings::NativeFormat);
+
+    if (!regLolipop.isWritable())
+    {
+        return false;
+    }
+
+    regLolipop.setValue("FriendlyAppName", "Lolipop Media Player");
+    regLolipopOpen.setValue("Default", "Open by Lolipop Media Player");
+    regLolipopCmd.setValue("Default", "\"" + QDir::toNativeSeparators(qApp->applicationFilePath()) + "\" \"%1\"");
+
+    QStringList exts = {".mp3", ".mp4"};
+    for (auto& ext : exts)
+    {
+        regLolipopTypes.setValue(ext, "");
+    }
+
+    return true;
+}
+
+
+void MainWindow::reg() noexcept
+{
+#ifdef Q_OS_WIN
+    if (regApp() && regFileTypes())
+    {
+        QMessageBox::information(this, tr("Info"), tr("Success."));
+    }
+    else
+    {
+        QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+    }
+#else
+    QMessageBox::information(this, tr("Info"), tr("Only for Windows."));
+#endif
+}
+
+
 void MainWindow::initMenuBar() noexcept
 {
     {
@@ -235,7 +292,8 @@ void MainWindow::initMenuBar() noexcept
         auto menu = new QMenu{tr("Help"), this};
         m_menus->addMenu(menu);
 
-        auto help = menu->addAction(tr("Help"));
+        auto reg = menu->addAction(tr("Register"));
+        connect(reg, &QAction::triggered, this, &MainWindow::reg);
 
         auto about = menu->addAction(tr("About"));
     }
