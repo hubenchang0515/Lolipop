@@ -79,6 +79,7 @@ void ControlWidget::setPlaying(bool v) noexcept
     {
         m_play->setIcon(QIcon(":/icon/play.svg"));
     }
+    setVisible(true);
 }
 
 
