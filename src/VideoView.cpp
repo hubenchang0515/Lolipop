@@ -22,11 +22,13 @@ VideoView::VideoView(QWidget* parent) noexcept:
     connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), [this](){ emit errorOccurred(m_player->errorString()); });
     connect(m_player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state){emit playingChanged(state == QMediaPlayer::State::PlayingState);});
     connect(m_player, &QMediaPlayer::volumeChanged, this, &VideoView::volumeChanged);
+    connect(m_player, &QMediaPlayer::videoAvailableChanged, this, [this](bool v){m_cover->setVisible(!v);});
 #else
     m_player->setAudioOutput(m_audio);
     connect(m_player, &QMediaPlayer::errorOccurred, [this](){ emit errorOccurred(m_player->errorString()); });
     connect(m_player, &QMediaPlayer::playbackStateChanged, [this](QMediaPlayer::PlaybackState state){emit playingChanged(state == QMediaPlayer::PlayingState);});
     connect(m_audio, &QAudioOutput::volumeChanged, this, &VideoView::volumeChanged);
+    connect(m_player, &QMediaPlayer::hasVideoChanged, this, [this](bool v){m_cover->setVisible(!v);});
 #endif
 
     connect(m_player, &QMediaPlayer::positionChanged, this, &VideoView::positionChanged);
@@ -190,7 +192,14 @@ void VideoView::onMetaDataChanged() noexcept
 
 void VideoView::fitCover() noexcept
 {
-    auto outRect = m_scene->sceneRect();
-    auto inRect = m_cover->boundingRect();
-    m_cover->setPos(outRect.width()/2 - inRect.width()/2, outRect.height()/2 - inRect.height()/2);
+    if (m_player->hasVideo())
+    {
+        m_cover->hide();
+    }
+    else
+    {
+        auto outRect = m_scene->sceneRect();
+        auto inRect = m_cover->boundingRect();
+        m_cover->setPos(outRect.width()/2 - inRect.width()/2, outRect.height()/2 - inRect.height()/2);
+    }
 }
