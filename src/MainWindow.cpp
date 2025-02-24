@@ -59,7 +59,7 @@ MainWindow::MainWindow(bool singleton, QWidget* parent) noexcept:
     connect(m_control, &ControlWidget::volumeChanged, m_view, &VideoView::setVolume);
 
 #ifdef Q_OS_WASM
-    m_view->setLink("https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm");
+    m_view->setLink("https://raw.githubusercontent.com/hubenchang0515/resource/refs/heads/master/lolipop/demo.mp4");
 #endif
 
     QFile qss{":/QtTheme/theme/Flat/Dark/Indigo/Teal.qss"};
