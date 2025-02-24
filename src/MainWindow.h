@@ -33,6 +33,9 @@ signals:
     void linkChanged(const QString&);
     void dataChanged(const QByteArray&);
 
+protected:
+    virtual void changeEvent(QEvent* event) override;
+
 private:
     UrlDialog* m_url;
     QMenuBar* m_menus;

@@ -154,6 +154,16 @@ void VideoView::setVolume(int volume) noexcept
 #endif
 }
 
+
+bool VideoView::isPlaying() noexcept
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    return m_player->state() == QMediaPlayer::State::PlayingState;
+#else
+    return m_player->playbackState() == QMediaPlayer::PlayingState;
+#endif
+}
+
 void VideoView::backward() noexcept
 {
     m_player->setPosition(m_player->position() - 10000);

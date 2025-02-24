@@ -32,6 +32,7 @@ public:
     void setData(const QByteArray& data) noexcept;
     void setPosition(qint64 n) noexcept;
     void setVolume(int volume) noexcept;
+    bool isPlaying() noexcept;
 
     void backward() noexcept;
     void forward() noexcept;

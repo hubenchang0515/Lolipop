@@ -59,7 +59,6 @@ MainWindow::MainWindow(bool singleton, QWidget* parent) noexcept:
     connect(m_control, &ControlWidget::volumeChanged, m_view, &VideoView::setVolume);
 
 #ifdef Q_OS_WASM
-    setFullScreen(true);
     m_view->setLink("https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm");
 #endif
 
@@ -75,7 +74,7 @@ MainWindow::~MainWindow() noexcept
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 {
-    if (!isFullScreen() || event->type() != QEvent::HoverMove)
+    if (!isFullScreen() || !m_view->isPlaying() || event->type() != QEvent::HoverMove)
         return false;
 
     QHoverEvent* hover = dynamic_cast<QHoverEvent*>(event);
@@ -135,22 +134,12 @@ void MainWindow::setFullScreen(bool v) noexcept
 
     if (v)
     {
-        ControlWidget* control = dynamic_cast<ControlWidget*>(m_mainLayout->takeAt(1)->widget());
-        m_viewLayout->addWidget(control);
-    #ifndef Q_OS_WASM
-        m_menus->hide();
-        m_tools->hide();
-    #endif
+        
         setWindowState(Qt::WindowFullScreen);
     }
     else
     {
-        ControlWidget* control = dynamic_cast<ControlWidget*>(m_viewLayout->takeAt(1)->widget());
-        m_mainLayout->addWidget(control);
-    #ifndef Q_OS_WASM
-        m_menus->show();
-        m_tools->show();
-    #endif
+        
         showNormal();
     }
     m_control->setFullScreen(v);
@@ -173,6 +162,38 @@ void MainWindow::showError(const QString& error) noexcept
 {
     QMessageBox::critical(this, "Error", error);
 }
+
+void MainWindow::changeEvent(QEvent* event)
+{
+    if (event->type() != QEvent::WindowStateChange)
+        return;
+
+    if (isFullScreen())
+    {
+        if (m_mainLayout->indexOf(m_control) >= 0)
+        {
+            m_mainLayout->removeWidget(m_control);
+            m_viewLayout->addWidget(m_control);
+        }
+#ifndef Q_OS_WASM
+        m_menus->hide();
+        m_tools->hide();
+#endif
+    }
+    else
+    {
+        if (m_viewLayout->indexOf(m_control) >= 0)
+        {
+            m_viewLayout->removeWidget(m_control);
+            m_mainLayout->addWidget(m_control);
+        }
+#ifndef Q_OS_WASM
+        m_menus->show();
+        m_tools->show();
+#endif
+    }
+}
+
 
 bool MainWindow::regApp() noexcept
 {
