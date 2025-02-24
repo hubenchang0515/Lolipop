@@ -13,8 +13,8 @@ VideoView::VideoView(QWidget* parent) noexcept:
 {
     m_data->open(QBuffer::ReadWrite);
     m_audio->setParent(this);
-    m_scene->addItem(m_item);
     m_scene->addItem(m_cover);
+    m_scene->addItem(m_item);
     setScene(m_scene);
     m_player->setVideoOutput(m_item);
 
@@ -176,7 +176,7 @@ void VideoView::onMetaDataChanged() noexcept
         return;
     }
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    auto cover = m_player->metaData(QMediaMetaData::ThumbnailImage).value<QImage>();
+    auto thumb = m_player->metaData(QMediaMetaData::ThumbnailImage).value<QImage>();
 #else
     auto thumb = m_player->metaData().value(QMediaMetaData::ThumbnailImage).value<QImage>();
 #endif
