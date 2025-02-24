@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include "MainWindow.h"
 
 int main(int argc, char* argv[])
@@ -13,7 +14,30 @@ int main(int argc, char* argv[])
 #endif
 
     QApplication app(argc, argv);
-    MainWindow window;
-    window.show();
-    return app.exec();
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    QCommandLineOption singleton{{"s", "singleton"}, "Run in singleton mode."};
+    parser.addOption(singleton);
+    parser.addPositionalArgument("file", "File to play.", "[file]");
+    parser.process(app);
+    auto options = parser.positionalArguments();
+    
+    if (Channel::instance().detect() && !options.empty())
+    {
+        Channel::instance().write(options[0]);
+        return 0;
+    }
+    else
+    {
+        MainWindow window{parser.isSet(singleton)};
+        window.show();
+        
+        if (!options.empty())
+        {
+            window.open(options[0]);
+        }
+        return app.exec();
+    }
+    
 }

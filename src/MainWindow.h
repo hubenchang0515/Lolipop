@@ -9,18 +9,21 @@
 #include "VideoView.h"
 #include "ControlWidget.h"
 #include "UrlDialog.h"
+#include "Channel.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    MainWindow(QWidget* parent=nullptr) noexcept;
+    MainWindow(bool singleton=false, QWidget* parent=nullptr) noexcept;
     ~MainWindow() noexcept;
 
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
+    void open(const QString& url) noexcept;
     void openFile() noexcept;
     void openLink() noexcept;
+    void openChannel(const QString& file) noexcept;
     void setFullScreen(bool v) noexcept;
     void toggleFullScreen() noexcept;
     void showError(const QString& error) noexcept;
@@ -40,8 +43,8 @@ private:
     QVBoxLayout* m_viewLayout;
     QVBoxLayout* m_mainLayout;
 
-
     void initMenuBar() noexcept;
+    void initSingleton() noexcept;
 };
 
 #endif

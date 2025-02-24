@@ -5,8 +5,9 @@
 #include <QMenu>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTemporaryFile>
 
-MainWindow::MainWindow(QWidget* parent) noexcept:
+MainWindow::MainWindow(bool singleton, QWidget* parent) noexcept:
     QMainWindow{parent},
     m_url{new UrlDialog{this}},
     m_menus{new QMenuBar},
@@ -31,6 +32,11 @@ MainWindow::MainWindow(QWidget* parent) noexcept:
     
     initMenuBar();
     installEventFilter(this);
+
+    if (singleton)
+    {
+        initSingleton();
+    }
 
     connect(m_view, &VideoView::empty, this, &MainWindow::openFile);
     connect(m_view, &VideoView::playingChanged, m_control, &ControlWidget::setPlaying);
@@ -62,7 +68,7 @@ MainWindow::MainWindow(QWidget* parent) noexcept:
 
 MainWindow::~MainWindow() noexcept
 {
-
+    Channel::instance().remove();
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
@@ -88,6 +94,15 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
     return false;
 }
 
+void MainWindow::open(const QString& url) noexcept
+{
+    if (QFileInfo::exists(url))
+        m_view->setFile(url);
+    else
+        m_view->setLink(url);
+    m_view->play();
+}
+
 void MainWindow::openFile() noexcept
 {
     auto file = QFileDialog::getOpenFileName(this);
@@ -102,6 +117,14 @@ void MainWindow::openLink() noexcept
     m_url->show();
 }
 
+
+void MainWindow::openChannel(const QString& file) noexcept
+{
+    QFile channel{file};
+    channel.open(QFile::ReadOnly);
+    QString url = channel.readAll();
+    open(url);
+}
 
 void MainWindow::setFullScreen(bool v) noexcept
 {
@@ -219,3 +242,8 @@ void MainWindow::initMenuBar() noexcept
 }
 
 
+void MainWindow::initSingleton() noexcept
+{
+    Channel::instance().watch();
+    connect(&Channel::instance(), &Channel::fileChanged, this, &MainWindow::openChannel);
+}
