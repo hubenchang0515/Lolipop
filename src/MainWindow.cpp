@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QTemporaryFile>
 #include <QSettings>
+#include <QApplication>
 
 MainWindow::MainWindow(bool singleton, QWidget* parent) noexcept:
     QMainWindow{parent},
