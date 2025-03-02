@@ -23,17 +23,18 @@ VideoView::VideoView(QWidget* parent) noexcept:
     connect(m_player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state){emit playingChanged(state == QMediaPlayer::State::PlayingState);});
     connect(m_player, &QMediaPlayer::volumeChanged, this, &VideoView::volumeChanged);
     connect(m_player, &QMediaPlayer::videoAvailableChanged, this, [this](bool v){m_cover->setVisible(!v);});
+    connect(m_player, QOverload<>::of(&QMediaObject::metaDataChanged), this, &VideoView::onMetaDataChanged);
 #else
     m_player->setAudioOutput(m_audio);
     connect(m_player, &QMediaPlayer::errorOccurred, [this](){ emit errorOccurred(m_player->errorString()); });
     connect(m_player, &QMediaPlayer::playbackStateChanged, [this](QMediaPlayer::PlaybackState state){emit playingChanged(state == QMediaPlayer::PlayingState);});
     connect(m_audio, &QAudioOutput::volumeChanged, this, &VideoView::volumeChanged);
     connect(m_player, &QMediaPlayer::hasVideoChanged, this, [this](bool v){m_cover->setVisible(!v);});
+    connect(m_player, &QMediaPlayer::metaDataChanged, this, &VideoView::onMetaDataChanged);
 #endif
 
     connect(m_player, &QMediaPlayer::positionChanged, this, &VideoView::positionChanged);
     connect(m_player, &QMediaPlayer::durationChanged, this, &VideoView::durationChanged);
-    connect(m_player, &QMediaPlayer::metaDataChanged, this, &VideoView::onMetaDataChanged);
 }
 
 VideoView::~VideoView() noexcept
@@ -202,7 +203,11 @@ void VideoView::onMetaDataChanged() noexcept
 
 void VideoView::fitCover() noexcept
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    if (m_player->isVideoAvailable())
+#else
     if (m_player->hasVideo())
+#endif
     {
         m_cover->hide();
     }
