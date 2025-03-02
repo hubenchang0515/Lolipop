@@ -10,7 +10,7 @@ if(WIN32)
   add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
   add_link_options("$<$<AND:$<STREQUAL:$<CXX_COMPILER_ID>,MSVC>,$<STREQUAL:$<CONFIG>,Release>>:/SUBSYSTEM:windows;/ENTRY:mainCRTStartup>")
   add_link_options("$<$<AND:$<STREQUAL:$<CXX_COMPILER_ID>,GNU>,$<STREQUAL:$<CONFIG>,Release>>:-mwindows>")
-  set(RES "src/resource/icon.rc")
+  set(RES "$<$<CXX_COMPILER_ID:MSVC>:src/resource/icon.rc>")
 endif()
 
 find_package(Qt6 COMPONENTS Core Widgets Multimedia MultimediaWidgets QUIET)
