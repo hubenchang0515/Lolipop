@@ -46,10 +46,7 @@ private:
     QVBoxLayout* m_viewLayout;
     QVBoxLayout* m_mainLayout;
 
-    bool regApp() noexcept;
-    bool regFileTypes() noexcept;
-    void reg() noexcept;
-
+    bool updateRegistry() noexcept;
     void initMenuBar() noexcept;
     void initSingleton() noexcept;
 };

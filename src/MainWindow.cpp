@@ -195,59 +195,86 @@ void MainWindow::changeEvent(QEvent* event)
 }
 
 
-bool MainWindow::regApp() noexcept
-{
-    QSettings regLolipop("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\lolipop.exe", QSettings::NativeFormat);
-    if (!regLolipop.isWritable())
-    {
-        return false;
-    }
-
-    regLolipop.setValue("Default", QDir::toNativeSeparators(qApp->applicationFilePath()));
-    regLolipop.setValue("Path", QDir::toNativeSeparators(qApp->applicationDirPath()));
-    return true;
-}
-
-bool MainWindow::regFileTypes() noexcept
-{
-    QSettings regLolipop("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe", QSettings::NativeFormat);
-    QSettings regLolipopOpen("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\shell\\open", QSettings::NativeFormat);
-    QSettings regLolipopCmd("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\shell\\open\\command", QSettings::NativeFormat);
-    QSettings regLolipopTypes("HKEY_CLASSES_ROOT\\Applications\\lolipop.exe\\SupportedTypes", QSettings::NativeFormat);
-
-    if (!regLolipop.isWritable())
-    {
-        return false;
-    }
-
-    regLolipop.setValue("FriendlyAppName", "Lolipop Media Player");
-    regLolipopOpen.setValue("Default", "Open by Lolipop Media Player");
-    regLolipopCmd.setValue("Default", "\"" + QDir::toNativeSeparators(qApp->applicationFilePath()) + "\" \"%1\"");
-
-    QStringList exts = {".mp3", ".mp4"};
-    for (auto& ext : exts)
-    {
-        regLolipopTypes.setValue(ext, "");
-    }
-
-    return true;
-}
-
-
-void MainWindow::reg() noexcept
+bool MainWindow::updateRegistry() noexcept
 {
 #ifdef Q_OS_WIN
-    if (regApp() && regFileTypes())
+    // 注册应用路径
     {
-        QMessageBox::information(this, tr("Info"), tr("Success."));
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\lolipop.exe", QSettings::NativeFormat);
+        if (!item.isWritable())
+        {
+            QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+            return false;
+        }
+        item.setValue("Default", QDir::toNativeSeparators(qApp->applicationFilePath()));
+        item.setValue("Path", QDir::toNativeSeparators(qApp->applicationDirPath()));
     }
-    else
+
+    // 应用名称 
     {
-        QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\lolipop.exe\\FriendlyAppName", QSettings::NativeFormat);
+        if (!item.isWritable())
+        {
+            QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+            return false;
+        }
+        item.setValue("Default", "Lolipop Media Player");
     }
+
+    // 打开操作的文本
+    {
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\lolipop.exe\\shell\\open", QSettings::NativeFormat);
+        if (!item.isWritable())
+        {
+            QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+            return false;
+        }
+        item.setValue("Default", "Play");
+    }
+
+    // 打开操作的命令
+    {
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\lolipop.exe\\shell\\open\\command", QSettings::NativeFormat);
+        if (!item.isWritable())
+        {
+            QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+            return false;
+        }
+        item.setValue("Default", "\"" + QDir::toNativeSeparators(qApp->applicationFilePath()) + "\" \"%1\"");
+    }
+
+    // 描述信息
+    {
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\lolipop.exe\\Application", QSettings::NativeFormat);
+        if (!item.isWritable())
+        {
+            QMessageBox::critical(this, "Error", "No permission, please run as administrator.");
+            return false;
+        }
+        item.setValue("ApplicationCompany", "Plan C(https://github.com/hubenchang0515)");
+        item.setValue("ApplicationDescription", "Multimedia Player");
+    }
+
+    // 关联文件类型
+    {
+        QSettings item("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\lolipop.exe\\Application\\SupportedTypes", QSettings::NativeFormat);
+        const QStringList exts = {
+            ".mp3", ".wav", ".flac", ".aac", ".ogg", ".mide",
+            ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"
+        };
+        for (const auto& ext : exts)
+        {
+            item.setValue(ext, "");
+            QSettings typeItem("HKEY_CURRENT_USER\\SOFTWARE\\Classes\\" + ext + "\\OpenWithProgids", QSettings::NativeFormat);
+            typeItem.setValue("lolipop.exe", 0);
+        }
+    }
+
+    QMessageBox::information(this, tr("Info"), tr("Success."));
 #else
     QMessageBox::information(this, tr("Info"), tr("Only for Windows."));
 #endif
+    return true;
 }
 
 
@@ -315,7 +342,7 @@ void MainWindow::initMenuBar() noexcept
         m_menus->addMenu(menu);
 
         auto reg = menu->addAction(tr("Register"));
-        connect(reg, &QAction::triggered, this, &MainWindow::reg);
+        connect(reg, &QAction::triggered, this, &MainWindow::updateRegistry);
 
         auto about = menu->addAction(tr("About"));
     }
